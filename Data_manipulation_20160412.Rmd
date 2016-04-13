@@ -95,7 +95,7 @@ For each plot this gives a data point for abundance and one for number of speice
 
 
 <span style="color:red;">NOTE!</span> If you have several visits on a plot you might preffer to estimate total number of species with non-parametric estimators (e.g., Chao, jack-knife). 
-
+asdasd 
 
 
 ## Including Plots
