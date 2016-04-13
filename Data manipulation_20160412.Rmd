@@ -1,0 +1,125 @@
+---
+title: "Data manipulation and exploration"
+output: html_document
+---
+This is an introduction to data management and exploration with R using real biodiversity data
+
+
+```{r setup, include=FALSE}
+#.libPaths(c('C:/HY-Data/BURGASRI/R/Rlibs/3.0.3', .libPaths()))
+knitr::opts_chunk$set(echo = TRUE, root.dir = 'C:/HY-Data/BURGASRI/Google Drive/Estudis/Thesis Kata/Data/') #This is the version for markdown to set up a working directory for all chunks 
+```
+
+
+
+Because different computers will store data in different paths, we will set a working directory. You need to change this for your computer. The classical way to do this is to use *set_wd* function:  
+
+`setwd("C:/HY-Data/BURGASRI/Google Drive/Estudis/Thesis Kata/Data/")`
+
+
+For initial basic data exploration we might wish to know:  
+
+  + the **number species** recorded in each plot  
+  + how many **individuals** are recorded in each plot  
+  + how similar the habitats are between them  
+  
+  
+First, we need to import the data to R. You can do this directly form the excel file, or from a text file. Now we go for the text file (coma separated)
+
+```{r Import data}
+count <- read.csv("C:/HY-Data/BURGASRI/Google Drive/Estudis/Thesis Kata/Data/bird_obs_Kata.csv")
+summary(count)
+```
+
+Those are records at individual level. That means that we have one row for each bird recorded.  
+This is too much detail for now. We have to summarize that information.  
+
+We will use package dplyr to manipulate data:
+
+```{r, message=FALSE}
+library(dplyr)
+```
+
+We might be interested only with the birds within 100m radius, because they are better detected than the ones further away. We start with making a new dataframe where we only include (i.e. filter) the birds detected within 100m:
+
+```{r}
+count_f <- filter(count,Distance<101)
+summary(count$Distance)
+summary(count_f$Distance)
+
+```
+
+So *count_f* is our raw data.  
+
+Next, we count number of birds for each combination of plot, date and species:
+
+```{r}
+sum_1 <- summarise(group_by(count, Plot, Date, Common.name), Count = sum(value))
+sum_1
+```
+
+
+Now we can sumarise the information in abundance and number of species per plot. We will look at two simple ways:
+
+#### 1. **Average** number of species and individuals recorded  
+
+For option #2, we will get averages of species or individuals per visit. This is not so sensitive as method #1 to differences in sampling effort. This is a good thing if, e.g., plot1 is visited 3 times and plot2 is visited 5 times.  
+
+We start counting total of individuals and spcies per visit: 
+
+```{r}
+sum_2 <- summarise(group_by(sum_1, Plot, Date), sp.n=n(), abundance=sum(Count))
+sum_2
+```
+
+As you can see, number of birds is very similar to number of species  
+&nbsp;
+
+#### 2. **Maximum** number of species and individuals recorded  
+
+For option #2, we pick the maximum number of individuals for each species recorded in each plot. Note that if we would sum up the abundances recorded over different visits we would count several times the same individuals. With the species we get the accumulated number of species. It can be done as follows
+
+
+```{r}
+sum_max2 <- summarise(group_by(sum_1, Plot, Common.name), Count = max(Count))
+```
+
+
+Finally we compile the number of species and total abundance for each plot
+```{r}
+sum_max3 <- summarise(group_by(sum_max2, Plot), sp.n=n(), abundance=sum(Count))
+
+```
+
+For each plot this gives a data point for abundance and one for number of speices. This is particularly good for community analyses (using *sum_max2*, e.g., PCA, beta-diversity...), and in some cases for data visualization.  
+
+
+<span style="color:red;">NOTE!</span> If you have several visits on a plot you might preffer to estimate total number of species with non-parametric estimators (e.g., Chao, jack-knife). 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=TRUE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
